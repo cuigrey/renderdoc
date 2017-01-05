@@ -578,6 +578,8 @@ ID3D12Resource *WrappedID3D12Device::GetUploadBuffer(uint64_t chunkOffset, uint6
 
 void WrappedID3D12Device::ApplyInitialContents()
 {
+  SCOPED_TIMER("WrappedID3D12Device::ApplyInitialContents");
+
   initStateCurBatch = 0;
   initStateCurList = NULL;
 
@@ -2383,6 +2385,8 @@ void WrappedID3D12Device::ReadLogInitialisation()
 void WrappedID3D12Device::ReplayLog(uint32_t startEventID, uint32_t endEventID,
                                     ReplayLogType replayType)
 {
+  SCOPED_TIMER("WrappedID3D12Device::ReplayLog");
+
   uint64_t offs = m_FrameRecord.frameInfo.fileOffset;
 
   m_pSerialiser->SetOffset(offs);

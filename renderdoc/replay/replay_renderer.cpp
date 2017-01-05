@@ -166,6 +166,8 @@ bool ReplayRenderer::SetFrameEvent(uint32_t eventID, bool force)
 {
   if(eventID != m_EventID || force)
   {
+    SCOPED_TIMER("Setting event to %u", eventID);
+
     m_EventID = eventID;
 
     m_pDevice->ReplayLog(eventID, eReplay_WithoutDraw);

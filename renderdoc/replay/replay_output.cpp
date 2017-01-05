@@ -195,10 +195,14 @@ void ReplayOutput::RefreshOverlay()
 
     if(draw != NULL && (draw->flags & eDraw_Drawcall))
     {
+      SCOPED_TIMER("InitPostVSBuffers");
+
       m_pDevice->InitPostVSBuffers(draw->eventID);
 
       if(postVSWholePass && !passEvents.empty())
       {
+        SCOPED_TIMER("InitPostVSBuffers pass");
+
         m_pDevice->InitPostVSBuffers(passEvents);
 
         m_pDevice->ReplayLog(m_EventID, eReplay_WithoutDraw);
@@ -210,6 +214,8 @@ void ReplayOutput::RefreshOverlay()
   {
     if(draw && m_pDevice->IsRenderOutput(m_RenderData.texDisplay.texid))
     {
+      SCOPED_TIMER("RenderOverlay");
+
       m_OverlayResourceId = m_pDevice->RenderOverlay(
           m_pDevice->GetLiveID(m_RenderData.texDisplay.texid), m_RenderData.texDisplay.typeHint,
           m_RenderData.texDisplay.overlay, m_EventID, passEvents);
