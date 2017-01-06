@@ -1083,8 +1083,9 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
 {
   D3D12ResourceType type = IdentifyTypeByPtr(live);
 
-  SCOPED_TIMER("Apply_InitialState(%s, %llu)", ToStr::Get(type).c_str(),
-               GetOriginalID(GetResID(live)));
+  ResourceId origId = GetOriginalID(GetResID(live));
+
+  PerformanceTimer applyTimer;
 
   if(type == Resource_DescriptorHeap)
   {
@@ -1097,6 +1098,12 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
       m_Device->CopyDescriptorsSimple(
           srcheap->GetDesc().NumDescriptors, dstheap->GetCPUDescriptorHandleForHeapStart(),
           srcheap->GetCPUDescriptorHandleForHeapStart(), srcheap->GetDesc().Type);
+
+      if(applyTimer.GetMilliseconds() > 10.0f)
+      {
+        RDCLOG("Descriptor heap %llu is type %s, %u descriptors", origId,
+               ToStr::Get(srcheap->GetDesc().Type).c_str(), srcheap->GetDesc().NumDescriptors);
+      }
     }
   }
   else if(type == Resource_Resource)
@@ -1127,6 +1134,8 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
 
         if(copyDst->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
         {
+          RDCLOG("Upload heap buffer");
+
           hr = copyDst->Map(0, NULL, (void **)&dst);
 
           if(FAILED(hr))
@@ -1145,6 +1154,8 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
         }
         else
         {
+          RDCLOG("Upload heap texture");
+
           D3D12_RESOURCE_DESC desc = copyDst->GetDesc();
 
           UINT numSubresources = desc.MipLevels;
@@ -1200,6 +1211,8 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
       }
       else
       {
+        RDCLOG("normal resource");
+
         ID3D12GraphicsCommandList *list = Unwrap(m_Device->GetInitialStateList());
 
         vector<D3D12_RESOURCE_BARRIER> barriers;
@@ -1276,6 +1289,19 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
         m_Device->FlushLists(true);
 #endif
       }
+
+      if(applyTimer.GetMilliseconds() > 50.0f)
+      {
+        D3D12_RESOURCE_DESC desc = copyDst->GetDesc();
+
+        RDCLOG("Resource %llu:", origId);
+        RDCLOG("  Heap %s %u %u", ToStr::Get(heapProps.Type).c_str(), heapProps.CPUPageProperty,
+               heapProps.MemoryPoolPreference);
+        RDCLOG("  %s %u x %u x %u", ToStr::Get(desc.Dimension).c_str(), desc.Width, desc.Height,
+               desc.DepthOrArraySize);
+        RDCLOG("     %u mips %s", desc.MipLevels, ToStr::Get(desc.Format).c_str());
+        RDCLOG("     %u %u", desc.SampleDesc.Count, desc.Layout);
+      }
     }
     else
     {
@@ -1286,4 +1312,7 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
   {
     RDCERR("Unexpected type needing an initial state created: %d", type);
   }
+
+  RDCLOG("Apply_InitialState(%s, %llu) => %lfms", ToStr::Get(type).c_str(), origId,
+         applyTimer.GetMilliseconds());
 }
