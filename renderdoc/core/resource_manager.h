@@ -835,7 +835,7 @@ void ResourceManager<WrappedResourceType, RealResourceType, RecordType>::CreateI
 template <typename WrappedResourceType, typename RealResourceType, typename RecordType>
 void ResourceManager<WrappedResourceType, RealResourceType, RecordType>::ApplyInitialContents()
 {
-  RDCDEBUG("Applying initial contents");
+  RDCLOG("Applying initial contents");
   uint32_t numContents = 0;
   for(auto it = m_InitialContents.begin(); it != m_InitialContents.end(); ++it)
   {
@@ -850,7 +850,7 @@ void ResourceManager<WrappedResourceType, RealResourceType, RecordType>::ApplyIn
       Apply_InitialState(live, it->second);
     }
   }
-  RDCDEBUG("Applied %d", numContents);
+  RDCLOG("Applied %d", numContents);
 }
 
 template <typename WrappedResourceType, typename RealResourceType, typename RecordType>

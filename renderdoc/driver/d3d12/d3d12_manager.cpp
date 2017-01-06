@@ -1083,6 +1083,9 @@ void D3D12ResourceManager::Apply_InitialState(ID3D12DeviceChild *live, InitialCo
 {
   D3D12ResourceType type = IdentifyTypeByPtr(live);
 
+  SCOPED_TIMER("Apply_InitialState(%s, %llu)", ToStr::Get(type).c_str(),
+               GetOriginalID(GetResID(live)));
+
   if(type == Resource_DescriptorHeap)
   {
     ID3D12DescriptorHeap *dstheap = (ID3D12DescriptorHeap *)live;
