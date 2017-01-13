@@ -2400,6 +2400,9 @@ void WrappedID3D11Device::Apply_InitialState(ID3D11DeviceChild *live,
 {
   ResourceType type = IdentifyTypeByPtr(live);
 
+  SCOPED_TIMER("WrappedID3D11Device::Apply_InitialState(%s, %llu)", ToStr::Get(type).c_str(),
+               GetResourceManager()->GetOriginalID(GetIDForResource(live)));
+
   if(type == Resource_UnorderedAccessView)
   {
     ID3D11UnorderedAccessView *uav = (ID3D11UnorderedAccessView *)live;
@@ -2437,6 +2440,8 @@ void WrappedID3D11Device::Apply_InitialState(ID3D11DeviceChild *live,
 void WrappedID3D11Device::ReplayLog(uint32_t startEventID, uint32_t endEventID,
                                     ReplayLogType replayType)
 {
+  SCOPED_TIMER("WrappedID3D11Device::ReplayLog");
+
   uint64_t offs = m_FrameRecord.frameInfo.fileOffset;
 
   m_pSerialiser->SetOffset(offs);
@@ -2460,6 +2465,7 @@ void WrappedID3D11Device::ReplayLog(uint32_t startEventID, uint32_t endEventID,
   if(!partial)
   {
     MarkerRegion apply("ApplyInitialContents");
+    SCOPED_TIMER("ApplyInitialContents");
     GetResourceManager()->ApplyInitialContents();
     GetResourceManager()->ReleaseInFrameResources();
   }
